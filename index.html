@@ -721,23 +721,35 @@ function onCategoryChange(){
 }
 
 async function fetchPriceInModal(){
-    const codeInput=document.getElementById('modal-code-input');
-    const catSelect=document.querySelector('#holding-form select[name="category"]');
-    const priceInput=document.getElementById('modal-current-price');
-    const btn=document.querySelector('.fetch-btn');
+    const codeInput=document.getElementById('modal-code-input'),
+          catSelect=document.querySelector('#holding-form select[name="category"]'),
+          priceInput=document.getElementById('modal-current-price'),
+          nameInput=document.querySelector('#holding-form input[name="name"]'),
+          btn=document.querySelector('.fetch-btn');
     const code=codeInput.value.trim();
     if(!code){showToast('请先输入代码','error');return}
     const activeTab=document.querySelector('.market-tab.active');
     const market=activeTab?activeTab.dataset.market:'a';
     btn.disabled=true;btn.textContent='获取中...';
     try{
-        let price;
-        if(catSelect.value==='fund'){const d=await fetchFundNav(code);price=d.nav;showToast(`${d.name} 净值 ${price}`)}
-        else{const d=await fetchStockPrice(code,market);price=d.price;showToast(`${d.name} ¥${price}`)}
-        priceInput.value=price;
-    }catch(err){showToast('获取失败: '+err.message,'error')}
-    finally{btn.disabled=false;btn.textContent='获取价格'}
+        if(catSelect.value==='fund'){
+            const d=await fetchFundNav(code);
+            priceInput.value=d.nav;
+            nameInput.value=d.name;
+            showToast(`${d.name} 净值 ${d.nav}`);
+        }else{
+            const d=await fetchStockPrice(code,market);
+            priceInput.value=d.price;
+            nameInput.value=d.name;
+            showToast(`${d.name} ¥${d.price}`);
+        }
+    }catch(err){
+        showToast('获取失败: '+err.message,'error');
+    }finally{
+        btn.disabled=false;btn.textContent='获取价格';
+    }
 }
+
 
 function deleteHolding(id){
     if(!confirm('确定删除此持仓？'))return;
