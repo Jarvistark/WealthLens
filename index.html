@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <style>
         *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         :root{
@@ -592,7 +593,26 @@ function renderAccChart() {
     charts.acc = new Chart(document.getElementById('chart-account'), {
         type:'doughnut',
         data: { labels:Object.keys(a), datasets:[{data:Object.values(a), backgroundColor:pal.slice(0,Object.keys(a).length), borderWidth:0, hoverOffset:8}] },
-        options: { responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{ legend:{position:'bottom',labels:{color:'#8b8d97',font:{family:'Noto Sans SC',size:isMobile()?10:12},padding:isMobile()?10:16,usePointStyle:true,pointStyleWidth:10}}, tooltip:{callbacks:{label:c=>c.label+': '+fm(c.raw,true)}} } }
+        options:{
+    responsive:true,maintainAspectRatio:false,cutout:'65%',
+    plugins:{
+        legend:{position:'bottom',labels:{color:'#8b8d97',font:{family:'Noto Sans SC',size:isMobile()?10:12},padding:isMobile()?10:16,usePointStyle:true,pointStyleWidth:10}},
+        tooltip:{callbacks:{label:c=>c.label+': '+fm(c.raw,true)}},
+        datalabels:{
+            color:'#e8e6e0',
+            font:{family:'DM Mono',size:isMobile()?9:11,weight:'500'},
+            formatter:function(value,ctx){
+                var total=ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b},0);
+                return total>0?(value/total*100).toFixed(1)+'%':'';
+            },
+            display:function(ctx){return ctx.chart.data.datasets[0].data[ctx.dataIndex]>0},
+            textStrokeColor:'rgba(0,0,0,0.6)',
+            textStrokeWidth:2
+        }
+    }
+}
+
+
     });
 }
 function renderTrendChart() {
