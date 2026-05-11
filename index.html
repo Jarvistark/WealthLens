@@ -137,7 +137,7 @@
         .badge-stock{background:rgba(201,168,76,0.15);color:#c9a84c}
         .badge-fund{background:rgba(34,197,94,0.15);color:#22c55e}
         .badge-bond{background:rgba(59,130,246,0.15);color:#3b82f6}
-        .badge-cash{background:rgba(52,211,153,0.15);color:#34d399}
+        .badge-cash{background:rgba(56,189,248,0.15);color:#38bdf8}
         .badge-gold{background:rgba(251,191,36,0.15);color:#fbbf24}
         .badge-insurance{background:rgba(244,114,182,0.15);color:#f472b6}
         .badge-other{background:rgba(167,139,250,0.15);color:#a78bfa}
@@ -374,7 +374,7 @@ const CAT = {
     stock:   { name:'股票',     color:'#c9a84c', badge:'badge-stock' },
     fund:    { name:'基金',     color:'#22c55e', badge:'badge-fund' },
     bond:    { name:'债券/理财', color:'#3b82f6', badge:'badge-bond' },
-    cash:    { name:'现金',     color:'#34d399', badge:'badge-cash' },
+    cash:    { name:'现金',     color:'#38bdf8', badge:'badge-cash' },
     gold:    { name:'黄金',     color:'#fbbf24', badge:'badge-gold' },
     insurance:{ name:'保险',    color:'#f472b6', badge:'badge-insurance' },
     other:   { name:'其他',     color:'#a78bfa', badge:'badge-other' }
@@ -583,10 +583,31 @@ function renderCatChart() {
     S.holdings.forEach(h => { c[h.category] = (c[h.category]||0) + hVal(h); });
     charts.cat = new Chart(document.getElementById('chart-category'), {
         type:'doughnut',
-        data: { labels:Object.keys(c).map(k=>(CAT[k]||{name:k}).name), datasets:[{data:Object.values(c), backgroundColor:Object.keys(c).map(k=>(CAT[k]||{color:'#888'}).color), borderWidth:0, hoverOffset:8}] },
-        options: { responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{ legend:{position:'bottom',labels:{color:'#8b8d97',font:{family:'Noto Sans SC',size:isMobile()?10:12},padding:isMobile()?10:16,usePointStyle:true,pointStyleWidth:10}}, tooltip:{callbacks:{label:c=>c.label+': '+fm(c.raw,true)}} } }
+        data: {
+            labels:Object.keys(c).map(k=>(CAT[k]||{name:k}).name),
+            datasets:[{data:Object.values(c), backgroundColor:Object.keys(c).map(k=>(CAT[k]||{color:'#888'}).color), borderWidth:0, hoverOffset:8}]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false, cutout:'65%',
+            plugins: {
+                legend:{position:'bottom',labels:{color:'#8b8d97',font:{family:'Noto Sans SC',size:isMobile()?10:12},padding:isMobile()?10:16,usePointStyle:true,pointStyleWidth:10}},
+                tooltip:{callbacks:{label:c=>c.label+': '+fm(c.raw,true)}},
+                datalabels:{
+                    color:'#e8e6e0',
+                    font:{family:'DM Mono',size:isMobile()?9:11,weight:'500'},
+                    formatter:function(value,ctx){
+                        var total=ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b},0);
+                        return total>0?(value/total*100).toFixed(2)+'%':'';
+                    },
+                    display:function(ctx){return ctx.chart.data.datasets[0].data[ctx.dataIndex]>0},
+                    textStrokeColor:'rgba(0,0,0,0.6)',
+                    textStrokeWidth:2
+                }
+            }
+        }
     });
 }
+
 function renderAccChart() {
     if(charts.acc) charts.acc.destroy();
     const a = {};
@@ -623,7 +644,7 @@ function renderTrendChart() {
     charts.trend = new Chart(document.getElementById('chart-trend'), {
         type:'line',
         data: { labels:ss.length?ss.map(s=>s.date):['暂无数据'], datasets:[{label:'净资产',data:ss.length?ss.map(s=>s.netWorth):[0],borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,0.08)',fill:true,tension:0.4,pointRadius:ss.length?(isMobile()?3:5):0,pointBackgroundColor:'#c9a84c',pointBorderColor:'#0b0d14',pointBorderWidth:2}] },
-        options: { responsive:true, maintainAspectRatio:false, scales:{ x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#555766',font:{family:'DM Mono',size:isMobile()?9:11},maxRotation:45}}, y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#555766',font:{family:'DM Mono',size:isMobile()?9:11},callback:v=>fm(v,true)}} }, plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'净资产: '+fm(c.raw)}}} }
+        options: { responsive:true, maintainAspectRatio:false, scales:{ x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#555766',font:{family:'DM Mono',size:isMobile()?9:11},maxRotation:45}}, y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#555766',font:{family:'DM Mono',size:isMobile()?9:11},callback:v=>fm(v,true)}} }, plugins:{legend:{display:false},datalabels:{display:false},tooltip:{callbacks:{label:c=>'净资产: '+fm(c.raw,true)}}} }
     });
 }
 function renderDashHoldings() {
@@ -717,7 +738,7 @@ function showHoldingModal(id) {
         '</div></div></div>'+
         '<div class="form-row">'+
         '<div class="form-group"><label>持有数量</label><input type="number" name="shares" required step="any" min="0" value="'+(h?.shares||'')+'"></div>'+
-        '<div class="form-group"><label id="l-cost">成本价 ('+sym+')</label><input type="number" name="costPrice" required step="any" min="0" value="'+(h?.costPrice||'')+'"></div>'+
+        '<div class="form-group"><label id="l-cost">成本价 ('+sym+')</label><input type="number" name="costPrice" required step="any" value="'+(h?.costPrice||'')+'"></div>'+
         '</div>'+
         '<div class="form-group"><label id="l-price">当前价格 ('+sym+')</label><input type="number" name="currentPrice" required step="any" min="0" value="'+(h?.currentPrice||'')+'" id="f-price"></div>'+
         '<div id="cny-hint" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:12px"></div>'+
